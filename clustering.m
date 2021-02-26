@@ -4,75 +4,45 @@ clear all
 close all
 
 tic;
-%dirname = '/lustre/scratch2/s4688360/lmpruns/50_solvated/1/pppm/56'
-% dirname = '/lustre/scratch2/s4688360/lmpruns/50_solvated/'
-%dirname = '/scratch/s4688360/lmpruns/50_solvated/tc_automatic/20_10k/60more/'
-%dirname = '/scratch/s4688360/lmpruns/50_solvated/tc_automatic/crosscheck/'
-%dirname = '/scratch/s4688360/lmpruns/10_solvated/4bigbox10/'
 
-%dirname = '/scratch/ws/0/s4688360-Azo/10_solvated/4bigbox10/'
+
 dirname = './'
 
-%dirname = '/lustre/scratch2/s4688360/lmpruns/50_solvated/switch/test/again/back'
-%dirname = '/lustre/scratch2/s4688360/lmpruns/50_solvated/1/switch/'
-%dirname = '/lustre/scratch2/s4688360/lmpruns/50_solvated/cl1_1_10/switch05/'
-%nbins=350;
-freq=500*4;
-%freq=100;
-%freq=25;
-dt=2.0;
+freq=500*4; % sampling frequency of MD simulation
+dt=2.0; % time step
 
-r_cutoff = 5.8
-angle_cutoff = 15
-cos_cutoff = cos(angle_cutoff*pi/180) %0.966 %0.966 %5 %66
-
-%subdir={'/rerun_noh2o/'};
-%subdir={'2/rerun12/'};
-%subdir={'rerun'};
-%subdir={'cluster_analysis'};
-%subdir={'cluster_analysis_2nd'};
-%subdir={'cluster_analysis_4th_amorphous'};
-
-%subdir={'new_cluster_analysis_bigg'};
-%subdir={'1/5.8_0.966', '2/5.8_0.966', '4/5.8_0.966', '5/5.8_0.966',  };
-subdir={'example' };
-
-
-
-%subdir={'1/rerun12/','2/rerun12/','3/rerun12/','4/rerun12/','5/rerun12/',};
-%subdir={'/01ps/rr','/02ps/rr','/03ps/rr', '/05ps/rr','/1ps/rr','/2ps/rr','/3ps/rr','/5ps/rr','/10ps/rr'};
-%subdir={'/01ps/back/rrback','/02ps/back/rrback','/03ps/back/rrback', '/05ps/back/rrback','/1ps/back/rrback','/2ps/back/rrback','/3ps/back/rrback','/5ps/back/rrback','/10ps/back/rrback'};
+r_cutoff = 5.8 % distance cutoff for clustering
+angle_cutoff = 15 % angle cutoff for clustering
+cos_cutoff = cos(angle_cutoff*pi/180) 
+subdir={'example'};
 cd(dirname);
-
-%% Verallgemeinerung der Typen fuer schnelle Anpassung
 
 length(subdir);
 
-%Ncom = 100;
+for b=1:length(subdir) % loop over multiple sub-directories - cd should be implemented!!
 
-for b=1:length(subdir)
+        curfile = subdir{b}; %% current file location
+	subpath=strcat(dirname,subdir{b}); %% path to files
 
-        curfile=subdir{b}; %% current file location
-	subpath=strcat(dirname,subdir{b});
-
-        %% centers of mass (dcd file)
-	
+        % file containing variable box sizes in case of NPT simulation (LAMMPS output)
         boxfn=strcat(dirname,subdir{b},'/boxsize.txt');
         boxsz=dlmread(boxfn,'',2,1);
         
-        %ellfn=strcat(dirname,subdir{b},'/ellipsoid.txt');
+        % file containing orientation vector of oblate molecule (short axis of ellipsoid)
+        % this is the output of a self-written extension of LAMMPS
+
         ellfn=strcat(dirname,subdir{b},'/ellipsoid_tensor.txt');
         ell=dlmread(ellfn,'',[3 7 -1 12 ]);  
         ell(~any(ell,2),:)=[];
-        vec=ell(:,1:3);        
-        rg=ell(:,4:6);
+        vec=ell(:,1:3); % vector
+        rg=ell(:,4:6); % radius of gyration - may be discarded
         
-        
+        % centers of mass (COM) of each molecule at each snapshot
         xyzfn=strcat(dirname,subdir{b},'/com1.out');
         xyz=dlmread(xyzfn,'',[3 1 -1  3]);  
         xyz(~any(xyz(:,2:3),2), :)=[];
         
-
+        % number of molecules and snapshots
         Ncom=size(xyz,1)/size(boxsz,1);
         Nframes=size(boxsz,1)
         %Nframes=12501;
