@@ -12,7 +12,7 @@ freq=500*4; % sampling frequency of MD simulation
 dt=2.0; % time step
 
 r_cutoff = 5.8 % distance cutoff for clustering
-angle_cutoff = 15 % angle cutoff for clustering
+angle_cutoff = 25 % angle cutoff for clustering
 cos_cutoff = cos(angle_cutoff*pi/180) 
 subdir={'example'};
 cd(dirname);
@@ -156,6 +156,12 @@ for b=1:length(subdir) % loop over multiple sub-directories - cd should be imple
 
 
                     dotprod=oivec * ojvec';
+
+                    % symmetry of disk-like object
+                    if dotprod < 0
+                       dotprod = oivec * (-ojvec');
+                    end
+        
                     cdot(k)=dotprod;
                     cosines(k)=acos(dotprod)*180/pi;
 
@@ -537,6 +543,13 @@ angles_window=[angles_avg_t(1) angles_window(:)'];
 ctotal_avg=[ctotal(1) ctotal_avg(:)'];
 %dlmwrite('chist_avg.txt', [crd; chist_avg]', 'delimiter', '\t',  'precision', 8);
 
+
+% More reasonable version of Nas_avg
+% Nat_avg (number of molecules clustered total) 
+% and ctotal_avg (number of clusters total) are rounded
+% to the nearest integer to be meaningful
+% Hence, then Nas_avg (average Molecules / Cluster) is not necessarily an integer
+Nas_avg = Nat_avg ./ ctotal_avg;
 
 
 
